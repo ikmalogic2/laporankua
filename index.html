@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Laporan</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Efek Glassmorphism halus untuk panel */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .dark .glass-panel {
+            background: rgba(31, 41, 55, 0.7);
+        }
+        /* Transisi transparan yang mulus */
+        body { transition: background-color 0.3s ease, color 0.3s ease; }
+    </style>
+</head>
+<body x-data="reportApp()" :class="{ 'dark': isDarkMode }" class="bg-gray-50 text-gray-800 antialiased selection:bg-blue-200 dark:selection:bg-blue-900">
+
+    <div class="min-h-screen dark:bg-gray-900 transition-colors duration-300 py-10 px-4 sm:px-6">
+        
+        <!-- Header & Dark Mode Toggle -->
+        <div class="max-w-2xl mx-auto flex justify-between items-center mb-8">
+            <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white flex items-center gap-2">
+                <i data-lucide="file-text" class="w-7 h-7 text-blue-600 dark:text-blue-400"></i>
+                Editor Laporan
+            </h1>
+            <button @click="toggleTheme()" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition">
+                <i x-show="!isDarkMode" data-lucide="moon" class="w-5 h-5 text-gray-600"></i>
+                <i x-show="isDarkMode" data-lucide="sun" class="w-5 h-5 text-gray-300" x-cloak></i>
+            </button>
+        </div>
+
+        <!-- Main Card Form -->
+        <div class="max-w-2xl mx-auto glass-panel border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm p-6 sm:p-8">
+            
+            <div class="space-y-6">
+                <!-- Input Judul Laporan -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Judul Laporan</label>
+                    <input type="text" x-model="reportTitle" placeholder="Masukkan judul laporan..." 
+                        class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow">
+                </div>
+
+                <!-- Input Tanggal -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tanggal Laporan</label>
+                    <input type="date" x-model="reportDate" 
+                        class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow">
+                </div>
+
+                <!-- Input Isi Konten -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Isi Laporan</label>
+                    <textarea x-model="reportContent" rows="8" placeholder="Ketik isi laporan di sini..." 
+                        class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow resize-y"></textarea>
+                </div>
+            </div>
+
+            <hr class="my-8 border-gray-200 dark:border-gray-700">
+
+            <!-- Panel Pengaturan Ekspor -->
+            <div class="bg-gray-50/50 dark:bg-gray-800/50 p-5 rounded-xl border border-gray-100 dark:border-gray-700">
+                <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
+                    <i data-lucide="settings-2" class="w-4 h-4"></i> Pengaturan Ekspor Word
+                </h3>
+                
+                <div class="flex flex-col sm:flex-row sm:space-x-8 space-y-3 sm:space-y-0 mb-6">
+                    <!-- Checkbox Judul -->
+                    <label class="flex items-center space-x-3 cursor-pointer group">
+                        <div class="relative flex items-center">
+                            <input type="checkbox" x-model="includeTitle" class="w-5 h-5 border border-gray-300 rounded bg-white checked:bg-blue-600 checked:border-blue-600 focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 appearance-none transition-all">
+                            <i data-lucide="check" class="absolute w-3.5 h-3.5 text-white left-0.5 top-0.5 pointer-events-none opacity-0 transition-opacity" :class="{'opacity-100': includeTitle}"></i>
+                        </div>
+                        <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">Masukkan Judul</span>
+                    </label>
+
+                    <!-- Checkbox Tanggal -->
+                    <label class="flex items-center space-x-3 cursor-pointer group">
+                        <div class="relative flex items-center">
+                            <input type="checkbox" x-model="includeDate" class="w-5 h-5 border border-gray-300 rounded bg-white checked:bg-blue-600 checked:border-blue-600 focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 appearance-none transition-all">
+                            <i data-lucide="check" class="absolute w-3.5 h-3.5 text-white left-0.5 top-0.5 pointer-events-none opacity-0 transition-opacity" :class="{'opacity-100': includeDate}"></i>
+                        </div>
+                        <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">Masukkan Tanggal</span>
+                    </label>
+                </div>
+
+                <!-- Tombol Ekspor -->
+                <button @click="exportToWord()" 
+                    class="w-full sm:w-auto flex items-center justify-center gap-2 py-2.5 px-6 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-sm hover:shadow transition-all duration-200 focus:ring-4 focus:ring-blue-500/50 active:scale-[0.98]">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    Ekspor ke Ms. Word
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Script Logika Aplikasi -->
+    <script>
+        // Inisialisasi ikon Lucide
+        lucide.createIcons();
+
+        function reportApp() {
+            return {
+                // State Data
+                isDarkMode: false,
+                reportTitle: 'Laporan Rekapitulasi Data',
+                reportDate: new Date().toISOString().split('T')[0], // Set default ke hari ini
+                reportContent: '',
+                
+                // State Checkbox
+                includeTitle: true,
+                includeDate: true,
+
+                init() {
+                    // Cek tema di Local Storage agar preferensi tersimpan
+                    if (localStorage.getItem('theme') === 'dark') {
+                        this.isDarkMode = true;
+                    }
+                    
+                    // Render ulang ikon saat inisialisasi agar ikon tema berubah
+                    this.$nextTick(() => { lucide.createIcons(); });
+                },
+
+                toggleTheme() {
+                    this.isDarkMode = !this.isDarkMode;
+                    localStorage.setItem('theme', this.isDarkMode ? 'dark' : 'light');
+                    this.$nextTick(() => { lucide.createIcons(); });
+                },
+
+                exportToWord() {
+                    // Format tanggal menjadi format Indonesia yang rapi (misal: 3 September 2026)
+                    let formattedDate = "";
+                    if (this.reportDate) {
+                        const dateObj = new Date(this.reportDate);
+                        formattedDate = dateObj.toLocaleDateString('id-ID', {
+                            year: 'numeric', month: 'long', day: 'numeric'
+                        });
+                    }
+
+                    // Kerangka HTML untuk diubah menjadi file .doc
+                    let exportContent = `
+                        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                        <head>
+                            <meta charset='utf-8'>
+                            <title>${this.reportTitle}</title>
+                        </head>
+                        <body>
+                    `;
+
+                    // Cek logika: Masukkan Judul jika dicentang
+                    if (this.includeTitle && this.reportTitle.trim() !== "") {
+                        exportContent += `
+                            <div style="text-align: center; margin-bottom: 24px;">
+                                <h1 style="font-family: Arial, sans-serif; font-size: 16pt; font-weight: bold; margin: 0;">${this.reportTitle.toUpperCase()}</h1>
+                            </div>
+                        `;
+                    }
+
+                    // Cek logika: Masukkan Tanggal jika dicentang
+                    if (this.includeDate && formattedDate !== "") {
+                        exportContent += `
+                            <div style="text-align: right; margin-bottom: 20px;">
+                                <p style="font-family: Arial, sans-serif; font-size: 11pt; margin: 0;">Tanggal: ${formattedDate}</p>
+                            </div>
+                        `;
+                    }
+
+                    // Proses Isi Laporan (Mengubah enter/baris baru menjadi tag <br> di HTML)
+                    let formattedContent = this.reportContent.replace(/\n/g, '<br>');
+                    
+                    exportContent += `
+                        <div style="font-family: Arial, sans-serif; font-size: 12pt; line-height: 1.5; text-align: justify;">
+                            <p>${formattedContent}</p>
+                        </div>
+                        </body></html>
+                    `;
+
+                    // Proses mengubah string HTML menjadi file biner MS Word (Blob)
+                    const blob = new Blob(['\ufeff', exportContent], {
+                        type: 'application/msword'
+                    });
+                    
+                    // Trigger otomatis untuk Download
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement("a");
+                    link.href = url;
+                    
+                    // Penamaan file (jika judul kosong, gunakan nama default)
+                    let fileName = this.reportTitle.trim() !== "" ? this.reportTitle : "Laporan";
+                    link.download = fileName + '.doc';
+                    
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
